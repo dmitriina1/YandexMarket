@@ -53,130 +53,197 @@ public class YandexAfterSearch {
     }
 
     public void inputPriceInterval(String minimum, String maximum) {
-        wait.ignoring(StaleElementReferenceException.class)
-                        .until(
-                                driver -> {
-                                    this.minimumPriceInterval = driver.findElement(By.xpath(
-                                            "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
-                                                    "/..//input"));
-                                    minimumPriceInterval.clear();
-                                    minimumPriceInterval.click();
-                                    minimumPriceInterval.sendKeys(minimum + Keys.ENTER);
-                                    return wait.until(ExpectedConditions.attributeToBe(minimumPriceInterval, "value", String.valueOf(minimum))) &&
-                                            isJsReady(driver);
-                                });
+        wait.until(this::isJsReady);
+        this.minimumPriceInterval = wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath(
+                "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
+                        "/..//input"))));
+        minimumPriceInterval.clear();
+        minimumPriceInterval.click();
+        minimumPriceInterval.sendKeys(minimum + Keys.ENTER);
 
-        wait.ignoring(StaleElementReferenceException.class)
-                .until(
-                        driver -> {
-                            this.maximumPriceInterval = driver.findElement(By.xpath(
-                                    "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
-                                            "/..//input"));
-                            maximumPriceInterval.click();
-                            maximumPriceInterval.clear();
-                            maximumPriceInterval.sendKeys(maximum + Keys.ENTER);
-                            return wait.until(ExpectedConditions.attributeToBe(maximumPriceInterval, "value", String.valueOf(maximum))) &&
-                                    isJsReady(driver);
-                        });
-
-//        wait.until(visibilityOfElementLocated(By.xpath(
-//                "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
-//                        "/..//input")));
-//        this.minimumPriceInterval = driver.findElement(By.xpath(
-//                "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
-//                        "/..//input"));
-//        minimumPriceInterval.click();
-//        minimumPriceInterval.sendKeys(minimum + Keys.ENTER);
-
-//        wait.until(visibilityOfElementLocated(By.xpath(
-//                "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
-//                        "/..//input")));
-//        this.maximumPriceInterval = driver.findElement(By.xpath(
-//                "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
-//                        "/..//input"));
-//        maximumPriceInterval.click();
-//        maximumPriceInterval.sendKeys(maximum + Keys.ENTER);
+        this.maximumPriceInterval = wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath(
+                "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
+                        "/..//input"))));
+        maximumPriceInterval.click();
+        maximumPriceInterval.clear();
+        maximumPriceInterval.sendKeys(maximum + Keys.ENTER);
 
 
-//        new WebDriverWait(driver, 10)
-//                .ignoring(StaleElementReferenceException.class)
-//                .until((WebDriver d) -> {
-//                    WebElement htmlElement = d.findElement(nameInputBy);
-//                    htmlElement.sendKeys("Maria");
-//
-//                    System.out.println(htmlElement.getAttribute("value"));
-//
-//                    return true;
-//                });
     }
+
     private boolean isJsReady(WebDriver driver) {
         return ((JavascriptExecutor) driver)
                 .executeScript("return document.readyState").equals("complete");
     }
 
-
-    public void inputBrandsShowMore(String brandShown, String brandSearchLocation, List<String> someBrands){
-        List<String> someL = new ArrayList<>(someBrands);
-        for (String element : someL) {
-            while (!someL.isEmpty()) {
-                List<WebElement> brandElements = driver.findElements(By.xpath(brandShown));
-                if (brandElements.isEmpty()) {
-                    break;
-                }
-                WebElement lastElement = brandElements.get(brandElements.size() - 1);
-                lastElement.click();
-                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandShown))));
-                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandSearchLocation))));
-                wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(brandSearchLocation)));
-                this.brandSearch = driver.findElement(By.xpath(brandSearchLocation));
-                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandShown))));
-                brandSearch.click();
-                brandSearch.sendKeys(element);
-                By elementLocator = By.xpath(brandShown +
-                        "//span[contains(text(),'" + element + "' )]");
-                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(elementLocator)));
-                brandElements = driver.findElements(By.xpath(brandShown));
-                List<WebElement> foundElements = driver.findElements(elementLocator);
-                if (foundElements.isEmpty()) {
-                    System.out.println("Пока не нашел" + element);
-                    continue;
-                }
-                WebElement brandObject = foundElements.get(0);
-                brandObject.click();
-                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandSearchLocation + "//button[text()='Очистить']"))));
-                this.brandSearchDel = driver.findElement(By.xpath(brandSearchLocation + "//button[contains(text(),'Очистить')]"));
-                brandSearchDel.click();
-                someL.remove(element);
-            }
-        }
-    }
-
     public void inputBrands(List<String> brands) {
-        String brandSearchLocation = "//div[contains(@data-zone-data, 'Бренд')]//input";
-        String brandShown = "//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'FilterValue')]";
-        //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandShown))));
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(brandShown)));
+        String brandSearchLocator = "//div[contains(@data-zone-data, 'Бренд')]//input";
+        String brandShownLocator = "//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'FilterValue')]";
         List<String> someBrands = new ArrayList<>(brands);
-        List<WebElement> brandElements = driver.findElements(By.xpath(brandShown));
-        for (WebElement element : brandElements) {
-            //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(element)));
-            element = wait.until(ExpectedConditions.elementToBeClickable(element));
-            String text = element.getText();
-            for (String brand : brands) {
-                if (text.contains(brand)) {
-                    WebElement checkbox = element.findElement(By.xpath(".//label"));
-                    wait.until(ExpectedConditions.attributeToBeNotEmpty(checkbox, "aria-checked"));
-                    while ("false".equals(checkbox.getAttribute("aria-checked"))) {
-                        checkbox.click();
-                        someBrands.remove(brand);
-                    }
-                }
-            }
-        }
+        wait.ignoring(StaleElementReferenceException.class)
+                .until(
+                        driver -> {
+                            List<WebElement> brandElements = driver.findElements(By.xpath(brandShownLocator));
+                            for (WebElement element : brandElements) {
+                                String text = element.getText();
+                                for (String brand : brands) {
+                                    if (text.contains(brand)) {
+                                        WebElement checkbox = element.findElement(By.xpath(".//label"));
+                                        wait.until(ExpectedConditions.attributeToBeNotEmpty(checkbox, "aria-checked"));
+                                        while ("false".equals(checkbox.getAttribute("aria-checked"))) {
+                                            checkbox.click();
+                                            someBrands.remove(brand);
+                                        }
+                                    }
+                                }
+                            }
+                            return true;
+                        });
         if (!someBrands.isEmpty()) {
-            inputBrandsShowMore(brandShown,brandSearchLocation,someBrands);
+            inputBrandsShowMore(brandShownLocator, brandSearchLocator, someBrands);
         }
     }
+
+    public void inputBrandsShowMore(String brandShownLocator, String brandSearchLocator, List<String> someBrands) {
+        String additionalLocator = "[contains(@data-baobab-name, 'showMoreFilters')]";
+        wait.until(this::isJsReady);
+        this.brandShowMoreButton = wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath(
+                brandShownLocator + additionalLocator))));
+        brandShowMoreButton.click();
+        for (String element : someBrands) {
+            this.brandSearch = wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath(
+                    brandSearchLocator))));
+            brandSearch.clear();
+            brandSearch.click();
+            brandSearch.sendKeys(element);
+            By elementLocator = By.xpath(brandShownLocator +
+                    "//span[contains(text(),'" + element + "' )]");
+            WebElement brandObject = wait.until(ExpectedConditions.visibilityOf(driver.findElement(elementLocator)));
+            brandObject.click();
+        }
+//
+//        for(String element:someBrands) {
+//            wait.ignoring(StaleElementReferenceException.class)
+//                    .until(
+//                            driver -> {
+//                                this.brandSearch = driver.findElement(By.xpath(
+//                                        brandSearchLocator));
+//                                brandSearch.clear();
+//                                brandSearch.click();
+//                                brandSearch.sendKeys(element);
+//                                By elementLocator = By.xpath(brandShownLocator +
+//                                        "//span[contains(text(),'" + element + "' )]");
+//                                WebElement brandObject = driver.findElement(elementLocator);
+//                                brandObject.click();
+//                                wait.until(driver1 -> "true".equals(brandObject.findElement(By.xpath("./ancestor::label")).getAttribute("aria-checked")));
+//
+//                                return true;
+//                            }
+//                    );
+//        }
+
+    }
+//
+//    public void inputBrandsShowMore(String brandShown, String brandSearchLocation, List<String> someBrands) {
+//        List<String> someL = new ArrayList<>(someBrands);
+//        for (String element : someL) {
+//            while (!someL.isEmpty()) {
+//                List<WebElement> brandElements = driver.findElements(By.xpath(brandShown));
+//                if (brandElements.isEmpty()) {
+//                    break;
+//                }
+//                WebElement lastElement = brandElements.get(brandElements.size() - 1);
+//                lastElement.click();
+//                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandShown))));
+//                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandSearchLocation))));
+//                wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(brandSearchLocation)));
+//                this.brandSearch = driver.findElement(By.xpath(brandSearchLocation));
+//                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandShown))));
+//                brandSearch.click();
+//                brandSearch.sendKeys(element);
+//                By elementLocator = By.xpath(brandShown +
+//                        "//span[contains(text(),'" + element + "' )]");
+//                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(elementLocator)));
+//                brandElements = driver.findElements(By.xpath(brandShown));
+//                List<WebElement> foundElements = driver.findElements(elementLocator);
+//                if (foundElements.isEmpty()) {
+//                    System.out.println("Пока не нашел" + element);
+//                    continue;
+//                }
+//                WebElement brandObject = foundElements.get(0);
+//                brandObject.click();
+//                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandSearchLocation + "//button[text()='Очистить']"))));
+//                this.brandSearchDel = driver.findElement(By.xpath(brandSearchLocation + "//button[contains(text(),'Очистить')]"));
+//                brandSearchDel.click();
+//                someL.remove(element);
+//            }
+//        }
+//    }
+
+//
+//    public void inputBrands(List<String> brands) {
+//        String brandSearchLocation = "//div[contains(@data-zone-data, 'Бренд')]//input";
+//        String brandShown = "//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'FilterValue')]";
+//        //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandShown))));
+//        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(brandShown)));
+//        List<String> someBrands = new ArrayList<>(brands);
+//        List<WebElement> brandElements = driver.findElements(By.xpath(brandShown));
+//        for (WebElement element : brandElements) {
+//            //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(element)));
+//            element = wait.until(ExpectedConditions.elementToBeClickable(element));
+//            String text = element.getText();
+//            for (String brand : brands) {
+//                if (text.contains(brand)) {
+//                    WebElement checkbox = element.findElement(By.xpath(".//label"));
+//                    wait.until(ExpectedConditions.attributeToBeNotEmpty(checkbox, "aria-checked"));
+//                    while ("false".equals(checkbox.getAttribute("aria-checked"))) {
+//                        checkbox.click();
+//                        someBrands.remove(brand);
+//                    }
+//                }
+//            }
+//        }
+//        if (!someBrands.isEmpty()) {
+//            inputBrandsShowMore(brandShown, brandSearchLocation, someBrands);
+//        }
+//    }
+
+//    public void inputBrandsShowMore(String brandShown, String brandSearchLocation, List<String> someBrands) {
+//        List<String> someL = new ArrayList<>(someBrands);
+//        for (String element : someL) {
+//            while (!someL.isEmpty()) {
+//                List<WebElement> brandElements = driver.findElements(By.xpath(brandShown));
+//                if (brandElements.isEmpty()) {
+//                    break;
+//                }
+//                WebElement lastElement = brandElements.get(brandElements.size() - 1);
+//                lastElement.click();
+//                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandShown))));
+//                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandSearchLocation))));
+//                wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(brandSearchLocation)));
+//                this.brandSearch = driver.findElement(By.xpath(brandSearchLocation));
+//                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandShown))));
+//                brandSearch.click();
+//                brandSearch.sendKeys(element);
+//                By elementLocator = By.xpath(brandShown +
+//                        "//span[contains(text(),'" + element + "' )]");
+//                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(elementLocator)));
+//                brandElements = driver.findElements(By.xpath(brandShown));
+//                List<WebElement> foundElements = driver.findElements(elementLocator);
+//                if (foundElements.isEmpty()) {
+//                    System.out.println("Пока не нашел" + element);
+//                    continue;
+//                }
+//                WebElement brandObject = foundElements.get(0);
+//                brandObject.click();
+//                //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath(brandSearchLocation + "//button[text()='Очистить']"))));
+//                this.brandSearchDel = driver.findElement(By.xpath(brandSearchLocation + "//button[contains(text(),'Очистить')]"));
+//                brandSearchDel.click();
+//                someL.remove(element);
+//            }
+//        }
+//    }
+
 
 //    public void inputBrands(String brandNameOne, String brandNameTwo) {
 //        By brandShowMoreButtonLocator = By.xpath("//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'LoadFilterValue')]//button");
@@ -313,7 +380,7 @@ public class YandexAfterSearch {
                 WebElement brand = driver.findElement(By.xpath("//div[contains(@data-zone-name," +
                         " 'fullSpecs')]//div[contains(@aria-label, 'Характеристики')]//span[contains(text(),'Бренд')]" +
                         "/../.. /following-sibling::div[1]//span"));
-                if(brand!=null) {
+                if (brand != null) {
                     String brandText = brand.getText().trim();
 
                     boolean containsBrand = namesOfBrand.stream().anyMatch(brandText::equalsIgnoreCase);

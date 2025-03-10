@@ -2,11 +2,14 @@ package ui.yandex;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static helpers.Properties.testsProperties;
@@ -24,6 +27,7 @@ public class BaseTest {
         chromeDriver.manage().window().maximize();
         chromeDriver.manage().timeouts().implicitlyWait(testsProperties.defaultTimeout(), TimeUnit.SECONDS);
     }
+
 
     @AfterEach
     public void after(){
