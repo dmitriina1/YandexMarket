@@ -53,29 +53,71 @@ public class YandexAfterSearch {
     }
 
     public void inputPriceInterval(String minimum, String maximum) {
-        wait.until(visibilityOfElementLocated(By.xpath(
-                "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
-                        "/..//input")));
-        this.minimumPriceInterval = driver.findElement(By.xpath(
-                "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
-                        "/..//input"));
-        minimumPriceInterval.click();
-        minimumPriceInterval.sendKeys(minimum + Keys.ENTER);
+        wait.ignoring(StaleElementReferenceException.class)
+                        .until(
+                                driver -> {
+                                    this.minimumPriceInterval = driver.findElement(By.xpath(
+                                            "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
+                                                    "/..//input"));
+                                    minimumPriceInterval.clear();
+                                    minimumPriceInterval.click();
+                                    minimumPriceInterval.sendKeys(minimum + Keys.ENTER);
+                                    return wait.until(ExpectedConditions.attributeToBe(minimumPriceInterval, "value", String.valueOf(minimum))) &&
+                                            isJsReady(driver);
+                                });
 
-        wait.until(visibilityOfElementLocated(By.xpath(
-                "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
-                        "/..//input")));
-        this.maximumPriceInterval = driver.findElement(By.xpath(
-                "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
-                        "/..//input"));
-        maximumPriceInterval.click();
-        maximumPriceInterval.sendKeys(maximum + Keys.ENTER);
+        wait.ignoring(StaleElementReferenceException.class)
+                .until(
+                        driver -> {
+                            this.maximumPriceInterval = driver.findElement(By.xpath(
+                                    "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
+                                            "/..//input"));
+                            maximumPriceInterval.click();
+                            maximumPriceInterval.clear();
+                            maximumPriceInterval.sendKeys(maximum + Keys.ENTER);
+                            return wait.until(ExpectedConditions.attributeToBe(maximumPriceInterval, "value", String.valueOf(maximum))) &&
+                                    isJsReady(driver);
+                        });
+
+//        wait.until(visibilityOfElementLocated(By.xpath(
+//                "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
+//                        "/..//input")));
+//        this.minimumPriceInterval = driver.findElement(By.xpath(
+//                "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
+//                        "/..//input"));
+//        minimumPriceInterval.click();
+//        minimumPriceInterval.sendKeys(minimum + Keys.ENTER);
+
+//        wait.until(visibilityOfElementLocated(By.xpath(
+//                "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
+//                        "/..//input")));
+//        this.maximumPriceInterval = driver.findElement(By.xpath(
+//                "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
+//                        "/..//input"));
+//        maximumPriceInterval.click();
+//        maximumPriceInterval.sendKeys(maximum + Keys.ENTER);
+
+
+//        new WebDriverWait(driver, 10)
+//                .ignoring(StaleElementReferenceException.class)
+//                .until((WebDriver d) -> {
+//                    WebElement htmlElement = d.findElement(nameInputBy);
+//                    htmlElement.sendKeys("Maria");
+//
+//                    System.out.println(htmlElement.getAttribute("value"));
+//
+//                    return true;
+//                });
+    }
+    private boolean isJsReady(WebDriver driver) {
+        return ((JavascriptExecutor) driver)
+                .executeScript("return document.readyState").equals("complete");
     }
 
 
     public void inputBrandsShowMore(String brandShown, String brandSearchLocation, List<String> someBrands){
         List<String> someL = new ArrayList<>(someBrands);
-        for (String element : new ArrayList<>(someL)) {
+        for (String element : someL) {
             while (!someL.isEmpty()) {
                 List<WebElement> brandElements = driver.findElements(By.xpath(brandShown));
                 if (brandElements.isEmpty()) {
@@ -118,7 +160,7 @@ public class YandexAfterSearch {
         List<WebElement> brandElements = driver.findElements(By.xpath(brandShown));
         for (WebElement element : brandElements) {
             //wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(element)));
-            wait.until(ExpectedConditions.elementToBeClickable(element));
+            element = wait.until(ExpectedConditions.elementToBeClickable(element));
             String text = element.getText();
             for (String brand : brands) {
                 if (text.contains(brand)) {
