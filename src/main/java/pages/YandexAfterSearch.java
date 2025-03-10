@@ -8,6 +8,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static helpers.Properties.testsProperties;
@@ -25,13 +26,12 @@ public class YandexAfterSearch {
     private WebElement brandShowMoreButton;
     private WebElement brandSearch;
     private WebElement selectorHP;
-    private WebElement selectorLenovo;
     private List<WebElement> list;
     private WebElement pageTitle;
 
     public YandexAfterSearch(WebDriver driver) {
         this.driver = driver;
-        this.wait=new WebDriverWait(driver, testsProperties.defaultTimeout());
+        this.wait = new WebDriverWait(driver, testsProperties.defaultTimeout());
         this.list = new ArrayList<>();
         wait.until(visibilityOfElementLocated(By.xpath("//div[contains(@data-zone-name, 'searchTitle')]//h1")));
         this.pageTitle = driver.findElement(By.xpath("//div[contains(@data-zone-name, 'searchTitle')]//h1"));
@@ -39,93 +39,145 @@ public class YandexAfterSearch {
 
     public YandexAfterSearch(WebDriver driver, String searchQuery) {
         this.driver = driver;
-        this.wait=new WebDriverWait(driver, testsProperties.defaultTimeout());
+        this.wait = new WebDriverWait(driver, testsProperties.defaultTimeout());
         this.list = new ArrayList<>();
-        driver.get("https://market.yandex.ru/search?text="+searchQuery + "&hid=91013");
+        driver.get("https://market.yandex.ru/search?text=" + searchQuery + "&hid=91013");
     }
 
-    public void checkingTitleByText(String link){
+    public void checkingTitleByText(String link) {
         wait.until(visibilityOfElementLocated(By.xpath("//div[contains(@data-zone-name, 'searchTitle')]//h1")));
         this.pageTitle = driver.findElement(By.xpath("//div[contains(@data-zone-name, 'searchTitle')]//h1"));
-        Assertions.assertFalse( driver.findElements(By.xpath("//div[contains(@data-zone-name, 'searchTitle')]//h1")).size()==0,
-                "Не найдено тайтла с текстом: '"+link);
+        Assertions.assertFalse(driver.findElements(By.xpath("//div[contains(@data-zone-name, 'searchTitle')]//h1")).size() == 0,
+                "Не найдено тайтла с текстом: '" + link);
     }
 
-    public void inputPriceInterval(String minimum, String maximum){
-        wait.until(visibilityOfElementLocated(By.xpath("//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]/..//input")));
-        this.minimumPriceInterval = driver.findElement(By.xpath("//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]/..//input"));
+    public void inputPriceInterval(String minimum, String maximum) {
+        wait.until(visibilityOfElementLocated(By.xpath(
+                "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
+                        "/..//input")));
+        this.minimumPriceInterval = driver.findElement(By.xpath(
+                "//span[contains(@data-auto, 'filter-range-min')]//label[contains(text(), 'Цена')]" +
+                        "/..//input"));
         minimumPriceInterval.click();
         minimumPriceInterval.sendKeys(minimum + Keys.ENTER);
 
-
-        wait.until(visibilityOfElementLocated(By.xpath("//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]/..//input")));
-        this.maximumPriceInterval = driver.findElement(By.xpath("//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]/..//input"));
+        wait.until(visibilityOfElementLocated(By.xpath(
+                "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
+                        "/..//input")));
+        this.maximumPriceInterval = driver.findElement(By.xpath(
+                "//span[contains(@data-auto, 'filter-range-max')]//label[contains(text(), 'Цена')]" +
+                        "/..//input"));
         maximumPriceInterval.click();
         maximumPriceInterval.sendKeys(maximum + Keys.ENTER);
     }
 
-    private boolean isLocatorVisible(By inputFieldLocator) {
-        try {
-            return wait.until(ExpectedConditions.visibilityOfElementLocated(inputFieldLocator)) != null;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
-        public void inputBrands(String brandNameOne, String brandNameTwo){
-        By brandShowMoreButtonLocator = By.xpath("//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'LoadFilterValue')]//button");
-        By brandSearchLocation = By.xpath("//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'filterSearchValueField')]//input");
-        By firstBrandLocator = By.xpath("//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'FilterValue')]//span[contains(text(),'" + brandNameOne + "' )]");
-        By secondBrandLocator = By.xpath(" //div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'FilterValue')]//span[contains(text(),'" + brandNameTwo + "')]");
-
-        boolean isFirstVisible = isLocatorVisible(firstBrandLocator);
-        boolean isSecondVisible = isLocatorVisible(secondBrandLocator);
-
-        if (isFirstVisible || isSecondVisible) {
-            if (isFirstVisible) {
-                wait.until(visibilityOfElementLocated(firstBrandLocator));
-                this.selectorLenovo = driver.findElement(firstBrandLocator);
-                selectorLenovo.click();
-            }
-            if (!isSecondVisible) {
-                isSecondVisible = isLocatorVisible(secondBrandLocator);
-            }
-            if (isSecondVisible) {
-                wait.until(visibilityOfElementLocated(secondBrandLocator));
-                this.selectorHP = driver.findElement(secondBrandLocator);
-                selectorHP.click();
-            }
-        } else {
-            long startTime = System.currentTimeMillis();
-            long maxTime = 60000;
-            while (!isLocatorVisible(brandSearchLocation) && (System.currentTimeMillis() - startTime) < maxTime) {
-                try {
-                    wait.until(ExpectedConditions.elementToBeClickable(brandShowMoreButtonLocator));
-                    this.brandShowMoreButton = driver.findElement(brandShowMoreButtonLocator);
-                    brandShowMoreButton.click();
-                } catch (Exception e) {
-                    System.out.println("Кнопка 'Показать всё' не кликабельна: " + e.getMessage());
-                    break;
+    public void inputBrands(List<String> brands) {
+        By brandSearchLocation = By.xpath("//div[contains(@data-zone-data, 'Бренд')]//input");
+        String brandShown = "//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'FilterValue')]";
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(brandShown)));
+        List<String> someBrands = new ArrayList<>(brands);
+        List<WebElement> brandElements = driver.findElements(By.xpath(brandShown));
+        for (WebElement element : brandElements) {
+            wait.until(ExpectedConditions.elementToBeClickable(element));
+            String text = element.getText();
+            for (String brand : brands) {
+                if (text.contains(brand)) {
+                    WebElement checkbox = element.findElement(By.xpath(".//label"));
+                    wait.until(ExpectedConditions.attributeToBeNotEmpty(checkbox, "aria-checked"));
+                    while ("false".equals(checkbox.getAttribute("aria-checked"))) {
+                        checkbox.click();
+                        someBrands.remove(brand);
+                    }
                 }
             }
-            wait.until(visibilityOfElementLocated(brandSearchLocation));
-            this.brandSearch = driver.findElement(brandSearchLocation);
-            brandSearch.click();
-            if(!isFirstVisible){
-            brandSearch.sendKeys(brandNameOne);
-                wait.until(visibilityOfElementLocated(firstBrandLocator));
-                this.selectorLenovo = driver.findElement(firstBrandLocator);
-                selectorLenovo.click();}
-            brandSearch.clear();
-            if (!isSecondVisible) {
-                brandSearch.sendKeys(brandNameTwo);
-                wait.until(visibilityOfElementLocated(secondBrandLocator));
-                this.selectorHP = driver.findElement(secondBrandLocator);
-                selectorHP.click();
+        }
+        if (!someBrands.isEmpty()) {
+            List<String> someL = new ArrayList<>(someBrands);
+            for (String element : new ArrayList<>(someL)) {
+                while (!someL.isEmpty()) {
+                    if (brandElements.isEmpty()) {
+                        break;
+                    }
+                    WebElement lastElement = brandElements.get(brandElements.size() - 1);
+                    lastElement.click();
+                    wait.until(ExpectedConditions.visibilityOfElementLocated(brandSearchLocation));
+                    this.brandSearch = driver.findElement(brandSearchLocation);
+                    brandSearch.click();
+                    brandSearch.sendKeys(element);
+                    By elementLocator = By.xpath(brandShown +
+                            "//span[contains(text(),'" + element + "' )]");
+                    wait.until(ExpectedConditions.elementToBeClickable(elementLocator));
+                    List<WebElement> foundElements = driver.findElements(elementLocator);
+                    if (foundElements.isEmpty()) {
+                        System.out.println("Пока не нашел" + element);
+                        continue;
+                    }
+                    WebElement brandObject = foundElements.get(0);
+                    brandObject.click();
+                    brandSearch.clear();
+                    someL.remove(element);
+                }
             }
         }
+
     }
 
+//    public void inputBrands(String brandNameOne, String brandNameTwo) {
+//        By brandShowMoreButtonLocator = By.xpath("//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'LoadFilterValue')]//button");
+//        By brandSearchLocation = By.xpath("//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'filterSearchValueField')]//input");
+//        By firstBrandLocator = By.xpath("//div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'FilterValue')]//span[contains(text(),'" + brandNameOne + "' )]");
+//        By secondBrandLocator = By.xpath(" //div[contains(@data-zone-data, 'Бренд')]//div[contains(@data-zone-name, 'FilterValue')]//span[contains(text(),'" + brandNameTwo + "')]");
+//
+//        boolean isFirstVisible = isLocatorVisible(firstBrandLocator);
+//        boolean isSecondVisible = isLocatorVisible(secondBrandLocator);
+//
+//        if (isFirstVisible || isSecondVisible) {
+//            if (isFirstVisible) {
+//                wait.until(visibilityOfElementLocated(firstBrandLocator));
+////                this.selectorLenovo = driver.findElement(firstBrandLocator);
+////                selectorLenovo.click();
+//            }
+//            if (!isSecondVisible) {
+//                isSecondVisible = isLocatorVisible(secondBrandLocator);
+//            }
+//            if (isSecondVisible) {
+//                wait.until(visibilityOfElementLocated(secondBrandLocator));
+//                this.selectorHP = driver.findElement(secondBrandLocator);
+//                selectorHP.click();
+//            }
+//        } else {
+//            long startTime = System.currentTimeMillis();
+//            long maxTime = 60000;
+//            while (!isLocatorVisible(brandSearchLocation) && (System.currentTimeMillis() - startTime) < maxTime) {
+//                try {
+//                    wait.until(ExpectedConditions.elementToBeClickable(brandShowMoreButtonLocator));
+//                    this.brandShowMoreButton = driver.findElement(brandShowMoreButtonLocator);
+//                    brandShowMoreButton.click();
+//                } catch (Exception e) {
+//                    System.out.println("Кнопка 'Показать всё' не кликабельна: " + e.getMessage());
+//                    break;
+//                }
+//            }
+//            wait.until(visibilityOfElementLocated(brandSearchLocation));
+//            this.brandSearch = driver.findElement(brandSearchLocation);
+//            brandSearch.click();
+//            if (!isFirstVisible) {
+//                brandSearch.sendKeys(brandNameOne);
+//                wait.until(visibilityOfElementLocated(firstBrandLocator));
+
+    /// /                this.selectorLenovo = driver.findElement(firstBrandLocator);
+    /// /                selectorLenovo.click();
+//            }
+//            brandSearch.clear();
+//            if (!isSecondVisible) {
+//                brandSearch.sendKeys(brandNameTwo);
+//                wait.until(visibilityOfElementLocated(secondBrandLocator));
+//                this.selectorHP = driver.findElement(secondBrandLocator);
+//                selectorHP.click();
+//            }
+//        }
+//    }
     public int CountOfElementsOnFirstPage() {
         List<WebElement> foundElements = new ArrayList<>();
         Actions actions = new Actions(driver);
@@ -135,7 +187,7 @@ public class YandexAfterSearch {
             List<WebElement> elements = driver.findElements(By.xpath("//div[contains(@data-auto, 'SerpList')]//div[contains(@data-auto-themename, 'listDetailed')]"));
             foundElements.addAll(elements);
 
-            if (driver.findElements(By.xpath("//div[contains(@data-baobab-name, 'pager')]")).size() > 0) {
+            if (!driver.findElements(By.xpath("//div[contains(@data-baobab-name, 'pager')]")).isEmpty()) {
                 break;
             }
             actions.sendKeys(org.openqa.selenium.Keys.PAGE_DOWN).perform();
@@ -181,14 +233,14 @@ public class YandexAfterSearch {
                 .filter(product -> {
                     String titleText = product.findElement(By.xpath(
                             ".//div[contains(@data-baobab-name, 'title')]//span")).getText().toLowerCase();
-                    return  namesOfBrand.stream()
+                    boolean isBrandMatch = namesOfBrand.stream()
                             .map(String::toLowerCase)
                             .anyMatch(titleText::contains);
-//                    String priceText = product.findElement(By.xpath(
-//                            ".//span[contains(@data-auto, 'snippet-price-current')]//*[1][name()='span']")).getText();
-//                    double price = Double.parseDouble(priceText);
-//                    boolean isPriceInRange = price > minimum && price < maximum;
-//                    return isBrandMatch && isPriceInRange;
+                    String priceText = product.findElement(By.xpath(
+                            ".//span[contains(@data-auto, 'snippet-price-current')]//*[1][name()='span']")).getText().replaceAll("[^\\d.]", "");
+                    double price = Double.parseDouble(priceText);
+                    boolean isPriceInRange = price > minimum && price < maximum;
+                    return isBrandMatch && isPriceInRange;
                 })
                 .collect(Collectors.toList());
 
@@ -197,29 +249,27 @@ public class YandexAfterSearch {
         List<WebElement> remaining = list.stream()
                 .filter(product -> !find.contains(product))
                 .collect(Collectors.toList());
-        if(!remaining.isEmpty()){
+        if (!remaining.isEmpty()) {
             for (WebElement element : remaining) {
                 element.click();
-                try {
-                    Thread.sleep(4000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
                 ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
                 driver.switchTo().window(tabs.get(tabs.size() - 1));
 
                 WebElement brand = driver.findElement(By.xpath("//div[contains(@data-zone-name," +
                         " 'fullSpecs')]//div[contains(@aria-label, 'Характеристики')]//span[contains(text(),'Бренд')]" +
                         "/../.. /following-sibling::div[1]//span"));
-                String brandText = brand.getText().trim(); // Убираем лишние пробелы
+                if(brand!=null) {
+                    String brandText = brand.getText().trim();
 
-                boolean containsBrand = namesOfBrand.stream().anyMatch(brandText::equalsIgnoreCase);
-                if(containsBrand){
-                    System.out.println(element);
-                    find.add(element);
+                    boolean containsBrand = namesOfBrand.stream().anyMatch(brandText::equalsIgnoreCase);
+                    if (containsBrand) {
+                        System.out.println(element);
+                        find.add(element);
+                        driver.close();
+                        driver.switchTo().window(tabs.get(0));
+                    }
                 }
-                driver.close();
-                driver.switchTo().window(tabs.get(0));
+
             }
         }
         System.out.println("---------------------------------------------------------");

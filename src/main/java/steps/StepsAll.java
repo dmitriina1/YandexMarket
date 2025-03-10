@@ -3,6 +3,7 @@ package steps;
 import io.qameta.allure.Allure;
 import io.qameta.allure.Step;
 import org.junit.jupiter.api.Assertions;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -66,16 +67,17 @@ public class StepsAll {
     }
 
     @Step("Выбираем 2-х производителей: {firstBrand} до {SecondBrand}")
-    public static void inputBrandsFilter(String firstBrand, String SecondBrand){
+    public static void inputBrandsFilter(String firstBrand, String secondBrand){
         YandexAfterSearch yandexAfterSearch = new YandexAfterSearch(driver, "Ноутбуки");
-        yandexAfterSearch.inputBrands(firstBrand, SecondBrand);
+        //yandexAfterSearch.inputBrands(firstBrand, secondBrand);
+        yandexAfterSearch.inputBrands(List.of(firstBrand,secondBrand));
     }
 
     @Step("Подсчет количества элементов на первой странице")
     public static void checkCountElementsOnFirstPage(String minimumPrice, String maximumPrice, String firstBrand, String secondBrand, int elementsCount){
         YandexAfterSearch yandexAfterSearch = new YandexAfterSearch(driver, "Ноутбуки");
         yandexAfterSearch.inputPriceInterval(minimumPrice, maximumPrice);
-        yandexAfterSearch.inputBrands(firstBrand, secondBrand);
+        yandexAfterSearch.inputBrands(List.of(firstBrand, secondBrand));
         Assertions.assertTrue(yandexAfterSearch.CountOfElementsOnFirstPage()>elementsCount);
     }
 
@@ -83,7 +85,7 @@ public class StepsAll {
     public static void checkFilters(String minimumPrice, String maximumPrice, String firstBrand, String secondBrand){
         YandexAfterSearch yandexAfterSearch = new YandexAfterSearch(driver, "Ноутбуки");
         yandexAfterSearch.inputPriceInterval(minimumPrice, maximumPrice);
-        yandexAfterSearch.inputBrands(firstBrand, secondBrand);
+        yandexAfterSearch.inputBrands(List.of(firstBrand, secondBrand));
         double num1 = Double.parseDouble(minimumPrice);
         double num2 = Double.parseDouble(maximumPrice);
        Assertions.assertTrue(yandexAfterSearch.checkFilters(num1,num2,List.of(firstBrand, secondBrand)));

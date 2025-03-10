@@ -28,6 +28,5 @@ public class BaseTest {
     @AfterEach
     public void after(){
         chromeDriver.quit();
-
     }
 }

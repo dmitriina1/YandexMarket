@@ -74,7 +74,7 @@ public class Tests extends BaseTest {
         checkCountElementsOnFirstPage(minimumPrice, maximumPrice, firstBrand, secondBrand,12);
     }
 
-    @DisplayName("Подсчет количества элементl")
+    @DisplayName("Подсчет количества элементов")
     @ParameterizedTest(name="{displayName}: {arguments}")
     @MethodSource("helpers.DataProvider#providerFilters")
     public void testCheckFilters(String minimumPrice, String maximumPrice, String firstBrand, String secondBrand) {
