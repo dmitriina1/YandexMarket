@@ -38,7 +38,7 @@ public class Tests extends BaseTest {
     @DisplayName("Проверка поиска электроники в каталоге ЯндексМаркета")
     @ParameterizedTest(name="{displayName}: {arguments}")
     @MethodSource("helpers.DataProvider#providerFindLaptopsInCatalog")
-    public void testFindElectronic(String electronic) {
+    public void testFindElectronic(String electronic, String laptop) {
         openSite(testsProperties.yandexMarketUrl(), "Яндекс Маркет", chromeDriver);
         findElectronic(electronic);
     }

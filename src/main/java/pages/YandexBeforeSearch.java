@@ -23,18 +23,20 @@ public class YandexBeforeSearch {
     public YandexBeforeSearch(WebDriver driver) {
         this.driver = driver;
         this.wait=new WebDriverWait(driver, testsProperties.defaultTimeout());
-        wait.until(visibilityOfElementLocated(By.xpath("//header//div[contains(@data-baobab-name, 'catalog')]")));
-        this.catalogButton = driver.findElement(By.xpath("//header//div[contains(@data-baobab-name, 'catalog')]"));
+        wait.until(visibilityOfElementLocated(By.xpath("//div[(@data-baobab-name='catalog')]")));
+        this.catalogButton = driver.findElement(By.xpath("//div[(@data-baobab-name='catalog')]"));
     }
 
     @Step("Нажатие на каталог")
     public void buttonClick(){
-        wait.until(visibilityOfElementLocated(By.xpath("//header//div[contains(@data-baobab-name, 'catalog')]")));
+        wait.until(this::isJsReady);
+        wait.until(visibilityOfElementLocated(By.xpath("//div[(@data-baobab-name='catalog')]")));
         catalogButton.click();
     }
 
     @Step("Поиск каталога по слову {catalogContent}")
     public void electronicMouseOver(String catalogContent){
+        wait.until(this::isJsReady);
         wait.until(visibilityOfElementLocated(By.xpath("//div[contains(@data-zone-name, 'catalog-content')]//ul//a//span[contains(text(), '"+ catalogContent +"')]")));
         this.electronicPlace = driver.findElement(By.xpath("//div[contains(@data-zone-name, 'catalog-content')]//ul//a//span[contains(text(), '"+ catalogContent +"')]"));
         Actions actions = new Actions(driver);
@@ -43,8 +45,13 @@ public class YandexBeforeSearch {
 
     @Step("Поиск подкаталога по слову {catalogSubItem}")
     public void laptopClick(String catalogSubItem){
-        wait.until(visibilityOfElementLocated(By.xpath("//li//a[contains(text(), '"+ catalogSubItem +"')]")));
-        this.laptopLink = driver.findElement(By.xpath("//li//a[contains(text(), '"+ catalogSubItem +"')]"));
+        wait.until(visibilityOfElementLocated(By.xpath("//li//a[contains(text(), '"+catalogSubItem+"')]")));
+        this.laptopLink = driver.findElement(By.xpath("//li//a[contains(text(), '"+catalogSubItem+"')]"));
         laptopLink.click();
+    }
+
+    private boolean isJsReady(WebDriver driver) {
+        return ((JavascriptExecutor) driver)
+                .executeScript("return document.readyState").equals("complete");
     }
 }
